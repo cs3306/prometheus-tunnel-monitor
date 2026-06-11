@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+scrape_configs:
+  # 本机 node_exporter（中控节点）
+  - job_name: 'local'
+    static_configs:
+      - targets: ['host-gateway:9100']
+        labels:
+          instance: 'local'
+
+  # 远程客户端（通过反向 SSH 隧道）
+  # - job_name: 'client-a'
+  #   static_configs:
+  #     - targets: ['host-gateway:19100']
+  #       labels:
+  #         instance: 'client-a'
+  #
+  # - job_name: 'client-b'
+  #   static_configs:
+  #     - targets: ['host-gateway:19101']
+  #       labels:
+  #         instance: 'client-b'

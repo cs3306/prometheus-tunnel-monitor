@@ -1,0 +1,39 @@
+groups:
+  - name: node_alerts
+    rules:
+
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🔴 {{ $labels.instance }} 离线"
+          description: "{{ $labels.job }} 已超过 2 分钟无响应"
+
+      - alert: HighCPU
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ {{ $labels.instance }} CPU 过高"
+          description: "CPU 使用率超过 85% 持续 5 分钟"
+
+      - alert: HighMemory
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ {{ $labels.instance }} 内存不足"
+          description: "内存使用超过 90%"
+
+      - alert: DiskAlmostFull
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ {{ $labels.instance }} 磁盘快满了"
+          description: "{{ $labels.mountpoint }} 使用率超过 85%"

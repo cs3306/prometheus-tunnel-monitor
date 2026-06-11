@@ -1,0 +1,24 @@
+[Unit]
+Description=Monitoring Reverse SSH Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=AUTOSSH_GATETIME=0
+ExecStart=/usr/bin/autossh -M 0 \
+    -o StrictHostKeyChecking=yes \
+    -o UserKnownHostsFile=/opt/monitoring/ssh/known_hosts \
+    -o ServerAliveInterval=15 \
+    -o ServerAliveCountMax=3 \
+    -o ExitOnForwardFailure=yes \
+    -i /opt/monitoring/ssh/tunnel_key \
+    -p YOUR_SSH_PORT \
+    -N \
+    -R 0.0.0.0:TUNNEL_PORT:127.0.0.1:9100 \
+    montunnel@YOUR_SERVER_IP
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

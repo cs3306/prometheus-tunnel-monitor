@@ -1,0 +1,15 @@
+{
+  "server-a": {
+    "billing_day": 1,
+    "limit_gb": 1024,
+    "interfaces": ["eth0"]
+  },
+  "server-b": {
+    "billing_day": 15,
+    "interfaces": ["eth0"]
+  },
+  "router": {
+    "billing_day": 1,
+    "interfaces": ["br-lan", "eth0"]
+  }
+}

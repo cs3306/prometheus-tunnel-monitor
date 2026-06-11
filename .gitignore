@@ -1,0 +1,5 @@
+.env
+tgbot/billing.json
+prometheus/prometheus.yml
+alertmanager/alertmanager.yml
+nginx/
