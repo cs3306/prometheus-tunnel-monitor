@@ -308,6 +308,78 @@ Webhook 地址固定为 `http://tgbot:8000/alertmanager`，无需修改。
 | `HighMemory` | 内存 > 90% | 5 分钟 |
 | `DiskAlmostFull` | 磁盘 > 85% | 10 分钟 |
 
+## SSH 登录通知
+
+有人登录任意节点时，Telegram Bot 自动推送通知。
+
+### 标准 Linux 客户端（Debian/Ubuntu/CentOS）
+
+**① 添加隧道端口转发**
+
+在 `monitoring-tunnel.service` 的 `-N \` 后面加一行：
+
+```
+    -L 127.0.0.1:36605:127.0.0.1:36605 \
+```
+
+```bash
+systemctl daemon-reload && systemctl restart monitoring-tunnel
+```
+
+**② 安装脚本和 PAM 配置**
+
+```bash
+cp notify-login.sh /opt/monitoring/notify-login.sh
+chmod +x /opt/monitoring/notify-login.sh
+echo 'session optional pam_exec.so /opt/monitoring/notify-login.sh' >> /etc/pam.d/sshd
+```
+
+**③ 验证**
+
+```bash
+PAM_TYPE=open_session PAM_USER=root PAM_RHOST=1.2.3.4 \
+  SSH_CONNECTION="1.2.3.4 12345 0.0.0.0 34521" \
+  bash /opt/monitoring/notify-login.sh
+```
+
+### ImmortalWrt / OpenWrt
+
+**① 添加隧道端口转发**
+
+在 `/etc/init.d/monitoring-tunnel` 的 `-R` 行后面加：
+
+```
+        -L 127.0.0.1:36605:127.0.0.1:36605 \
+```
+
+```bash
+/etc/init.d/monitoring-tunnel restart
+```
+
+**② 安装脚本**
+
+```bash
+cp notify-login-openwrt.sh /root/monitoring/notify-login.sh
+chmod +x /root/monitoring/notify-login.sh
+echo '. /root/monitoring/notify-login.sh' >> /etc/profile
+```
+
+**③ 验证**
+
+```bash
+SSH_CLIENT="1.2.3.4 12345 22" sh /root/monitoring/notify-login.sh
+```
+
+### 中控节点
+
+中控节点 bot 在本机运行，不需要隧道，直接装脚本：
+
+```bash
+cp notify-login.sh /opt/monitoring/notify-login.sh
+chmod +x /opt/monitoring/notify-login.sh
+echo 'session optional pam_exec.so /opt/monitoring/notify-login.sh' >> /etc/pam.d/sshd
+```
+
 ## 故障排查
 
 **隧道没建立**
@@ -641,6 +713,78 @@ Webhook URL is fixed as `http://tgbot:8000/alertmanager`. No changes needed.
 | `HighCPU` | CPU > 85% | 5 minutes |
 | `HighMemory` | Memory > 90% | 5 minutes |
 | `DiskAlmostFull` | Disk > 85% | 10 minutes |
+
+## SSH Login Notification
+
+When anyone logs into any monitored node, the Telegram Bot sends an automatic push notification.
+
+### Standard Linux Client (Debian/Ubuntu/CentOS)
+
+**① Add tunnel port forwarding**
+
+Add one line after `-N \` in `monitoring-tunnel.service`:
+
+```
+    -L 127.0.0.1:36605:127.0.0.1:36605 \
+```
+
+```bash
+systemctl daemon-reload && systemctl restart monitoring-tunnel
+```
+
+**② Install script and PAM config**
+
+```bash
+cp notify-login.sh /opt/monitoring/notify-login.sh
+chmod +x /opt/monitoring/notify-login.sh
+echo 'session optional pam_exec.so /opt/monitoring/notify-login.sh' >> /etc/pam.d/sshd
+```
+
+**③ Verify**
+
+```bash
+PAM_TYPE=open_session PAM_USER=root PAM_RHOST=1.2.3.4 \
+  SSH_CONNECTION="1.2.3.4 12345 0.0.0.0 34521" \
+  bash /opt/monitoring/notify-login.sh
+```
+
+### ImmortalWrt / OpenWrt
+
+**① Add tunnel port forwarding**
+
+Add after the `-R` line in `/etc/init.d/monitoring-tunnel`:
+
+```
+        -L 127.0.0.1:36605:127.0.0.1:36605 \
+```
+
+```bash
+/etc/init.d/monitoring-tunnel restart
+```
+
+**② Install script**
+
+```bash
+cp notify-login-openwrt.sh /root/monitoring/notify-login.sh
+chmod +x /root/monitoring/notify-login.sh
+echo '. /root/monitoring/notify-login.sh' >> /etc/profile
+```
+
+**③ Verify**
+
+```bash
+SSH_CLIENT="1.2.3.4 12345 22" sh /root/monitoring/notify-login.sh
+```
+
+### Control Node
+
+The bot runs locally — no tunnel needed. Install directly:
+
+```bash
+cp notify-login.sh /opt/monitoring/notify-login.sh
+chmod +x /opt/monitoring/notify-login.sh
+echo 'session optional pam_exec.so /opt/monitoring/notify-login.sh' >> /etc/pam.d/sshd
+```
 
 ## Troubleshooting
 
