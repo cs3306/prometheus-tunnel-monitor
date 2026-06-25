@@ -576,8 +576,30 @@ async def on_start(app):
 async def on_stop(app):
     app["poller"].cancel()
 
+async def handle_login(request):
+    try:
+        body = await request.json()
+        user = body.get("user", "unknown")
+        host = body.get("host", "unknown")
+        ip   = body.get("ip", "unknown")
+        port = body.get("port", "")
+        time = body.get("time", "")
+        text = (
+            f"🔐 <b>SSH 登录通知</b>\n\n"
+            f"主机: <code>{host}</code>\n"
+            f"用户: <code>{user}</code>\n"
+            f"来源: <code>{ip}</code>\n"
+            f"端口: <code>{port}</code>\n"
+            f"时间: {time}"
+        )
+        await tg_send(text)
+    except Exception as e:
+        log.error(f"Login notify error: {e}")
+    return web.Response(text="ok")
+
 app = web.Application()
 app.router.add_post("/alertmanager", handle_alert)
+app.router.add_post("/login-notify", handle_login)
 app.on_startup.append(on_start)
 app.on_cleanup.append(on_stop)
 
